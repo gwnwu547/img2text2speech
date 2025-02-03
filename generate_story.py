@@ -1,4 +1,5 @@
-from utils.imports import PromptTemplate,LLMChain,OllamaLLM
+from utils.imports import PromptTemplate,OllamaLLM
+from langchain_core.output_parsers import StrOutputParser
 import img2text
 
 def generate_story(scenario):
@@ -12,20 +13,17 @@ def generate_story(scenario):
         template=template
         ,input_variables=['scenario']
     )
-    story_llm = LLMChain(
-        llm=OllamaLLM(
-            model='deepseek-r1:32b'
-        )
-        ,prompt=prompt
-        ,verbose=True
-    )
-
-    story = story_llm.predict(scenario=scenario
-    )
+    llm=OllamaLLM(model='deepseek-r1:32b')
+        #,prompt=prompt
+        #,verbose=False
+    chain = prompt | llm | StrOutputParser()
+    story_raw = chain.invoke(scenario)
+    story=story_raw.split('</think>')[1].strip() # 删除deepseek-r1深度思考的部分
     print(story)
     return story
 
 url= '/Users/gwenwu/Documents/photo.jpg'
+#scenario='three women hugging on a wooden fence at sunset'
 
 if __name__=='__main__':
     scenario=img2text.img2text(url)
